@@ -190,7 +190,7 @@ class VOXLoader extends Loader {
             //position.applyMatrix4(rot
             position.add(pos);
             
-            octree.insert(position, voxelData);
+            octree.set(position, voxelData);
           }
         }
 

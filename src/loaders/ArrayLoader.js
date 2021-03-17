@@ -89,7 +89,7 @@ class ArrayLoader extends Loader {
                 let b = colors[i][j][k][2];
                 voxelData = { color: { r, g, b } };
               }
-              octree.insert(new Vector3(x, y, z), voxelData);
+              octree.set(new Vector3(x, y, z), voxelData);
             }
           }
         }

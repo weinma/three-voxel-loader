@@ -74,7 +74,7 @@ class BINVOXLoader extends Loader {
         z = voxel.z - (height / 2);
 
         let point = new Vector3(x, z, y);
-        octree.insert(point, voxelData);
+        octree.set(point, voxelData);
       });
 
       resolve(octree);

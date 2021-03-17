@@ -3,7 +3,8 @@
  */
 
 import autoBind from 'auto-bind';
-import { Color, BufferGeometry, MeshPhongMaterial, BoxGeometry, Vector3, Mesh, VertexColors } from 'three';
+import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
+import { Color, BoxGeometry, Vector3, Mesh, VertexColors, MeshBasicMaterial, MeshPhongMaterial } from 'three';
 import { LoaderFactory } from "./loaders/LoaderFactory";
 import { levelOfDetail } from './mixins/levelOfDetail';
 
@@ -52,7 +53,7 @@ export class VoxelLoader {
 
   /**
    * Update the internal data structures and settings.
-	 * @return {Promise<PointOctree>} Promise with an updated octree.
+   * @return {Promise<PointOctree>} Promise with an updated octree.
    */
   update() {
     if (this.octree === null) {
@@ -62,13 +63,13 @@ export class VoxelLoader {
   }
 
   /**
-	 * Loads and parses a 3D model file from a URL.
-	 *
-	 * @param {String} url - URL to the VOX file.
-	 * @param {Function} [onLoad] - Callback invoked with the Mesh object.
-	 * @param {Function} [onProgress] - Callback for download progress.
-	 * @param {Function} [onError] - Callback for download errors.
-	 */
+   * Loads and parses a 3D model file from a URL.
+   *
+   * @param {String} url - URL to the VOX file.
+   * @param {Function} [onLoad] - Callback invoked with the Mesh object.
+   * @param {Function} [onProgress] - Callback for download progress.
+   * @param {Function} [onError] - Callback for download errors.
+   */
   loadFile(url, onLoad, onProgress, onError) {
     let scope = this;
     let extension = url.split('.').pop().toLowerCase();
@@ -86,7 +87,7 @@ export class VoxelLoader {
   /**
    * Parses voxel data.
    * @param {PointOctree} octree Octree with voxel data stored as points in space.
-	 * @return {Promise<PointOctree>} Promise with an octree filled with voxel data.
+   * @return {Promise<PointOctree>} Promise with an octree filled with voxel data.
    */
   parseData(data, type) {
     let scope = this;
@@ -111,18 +112,18 @@ export class VoxelLoader {
    */
   generateMesh(octree) {
 
-    let mergedGeometry = new BufferGeometry();
+    let mergedGeometry
     const material = this.material;
 
     for (const leaf of octree.leaves()) {
-      if (leaf.points !== null) {
+      if (leaf?.data?.points?.length) {
         const pos = new Vector3();
         var i;
-        let min = { x: leaf.points[0].x, y: leaf.points[0].y, z: leaf.points[0].z };
-        let max = { x: leaf.points[0].x, y: leaf.points[0].y, z: leaf.points[0].z };
+        let min = { x: leaf.data.points[0].x, y: leaf.data.points[0].y, z: leaf.data.points[0].z };
+        let max = { x: leaf.data.points[0].x, y: leaf.data.points[0].y, z: leaf.data.points[0].z };
 
-        for (i = 0; i < leaf.points.length; i++) {
-          const point = leaf.points[i];
+        for (i = 0; i < leaf.data.points.length; i++) {
+          const point = leaf.data.points[i];
           pos.add(point);
           min.x = Math.min(min.x, point.x);
           min.y = Math.min(min.y, point.y);
@@ -139,18 +140,19 @@ export class VoxelLoader {
         let voxelGeometry = new BoxGeometry(width, height, depth);
         pos.divideScalar(i);
 
-        const rgb = leaf.data[0].color;
-        if (rgb != null) {
-          const color = new Color().setRGB(rgb.r / 255, rgb.g / 255, rgb.b / 255);
-
-          for (var i = 0; i < voxelGeometry.faces.length; i++) {
-            let face = voxelGeometry.faces[i];
-            face.color.set(color);
+        const data = leaf.data.data[0]
+        const rgb = data.color;
+        if (rgb) {
+          const count = voxelGeometry.attributes.position.count
+          voxelGeometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(count * 3), 3))
+          for (let i = 0; i != count; i++) {
+            voxelGeometry.attributes.color.setXYZ(i, rgb.r / 255, rgb.g / 255, rgb.b / 255)
           }
         }
 
         voxelGeometry.translate(pos.x, pos.y, pos.z);
-        mergedGeometry.merge(voxelGeometry);
+
+        mergedGeometry = !mergedGeometry ? voxelGeometry : BufferGeometryUtils.mergeBufferGeometries([mergedGeometry, voxelGeometry])
         voxelGeometry.translate(-pos.x, -pos.y, -pos.z);
       }
     }

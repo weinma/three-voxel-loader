@@ -28,11 +28,11 @@ class OctreeLoader {
       const newOctree = new PointOctree(octree.root.min, octree.max, 0, self.LOD.maxPoints, self.LOD.maxDepth);
 
       for (const leaf of octree.leaves()) {
-        if (leaf.points !== null) {
+        if (leaf.data.points !== null) {
           var i;
-          for (i = 0; i < leaf.points.length; i++) {
+          for (i = 0; i < leaf.data.points.length; i++) {
 
-            const point = leaf.points[i];
+            const point = leaf.data.points[i];
             const data = leaf.data[i];
             newOctree.insert(point, data);
           }

@@ -97,7 +97,7 @@ class XMLLoader extends Loader {
           b = bNode.childNodes[0].nodeValue * 1;
           voxelData = { color: { r, g, b } };
         }
-        octree.insert(new Vector3(x, y, z), voxelData);
+        octree.set(new Vector3(x, y, z), voxelData);
       });
 
       resolve(octree);
