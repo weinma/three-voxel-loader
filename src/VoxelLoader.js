@@ -4,7 +4,7 @@
 
 import autoBind from 'auto-bind';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
-import { Color, BoxGeometry, Vector3, Mesh, VertexColors, MeshBasicMaterial, MeshPhongMaterial } from 'three';
+import { BoxGeometry, Vector3, Mesh, VertexColors, MeshPhongMaterial } from 'three';
 import { LoaderFactory } from "./loaders/LoaderFactory";
 import { levelOfDetail } from './mixins/levelOfDetail';
 
@@ -52,17 +52,6 @@ export class VoxelLoader {
   }
 
   /**
-   * Update the internal data structures and settings.
-   * @return {Promise<PointOctree>} Promise with an updated octree.
-   */
-  update() {
-    if (this.octree === null) {
-      throw new Error('Octree is not built');
-    }
-    return this.parseData(this.octree, 'octree');
-  }
-
-  /**
    * Loads and parses a 3D model file from a URL.
    *
    * @param {String} url - URL to the VOX file.
@@ -71,37 +60,28 @@ export class VoxelLoader {
    * @param {Function} [onError] - Callback for download errors.
    */
   loadFile(url, onLoad, onProgress, onError) {
-    let scope = this;
-    let extension = url.split('.').pop().toLowerCase();
-    let loaderFactory = new LoaderFactory(this.manager);
+    let scope = this
 
-    let loader = loaderFactory.getLoader(extension);
-    loader.setLOD(this.LOD.maxPoints, this.LOD.maxDepth);
-
-    loader.load(url, function (octree) {
-      scope.octree = octree;
-      onLoad(scope.generateMesh(octree));
-    }, onProgress, onError);
+    scope.loadOctree(url, onProgress)
+      .then(octree => onLoad && onLoad(scope.generateMesh(octree)))
+      .catch(error => onError && onError(error))
   }
 
-  /**
-   * Parses voxel data.
-   * @param {PointOctree} octree Octree with voxel data stored as points in space.
-   * @return {Promise<PointOctree>} Promise with an octree filled with voxel data.
-   */
-  parseData(data, type) {
-    let scope = this;
-    let loaderFactory = new LoaderFactory(this.manager);
 
-    let loader = loaderFactory.getLoader(type);
-    loader.setLOD(this.LOD.maxPoints, this.LOD.maxDepth);
+  loadOctree(url, onProgress) {
+    let scope = this
 
-    return new Promise((resolve) => {
-      loader.parse(data).then((octree) => {
-        scope.octree = octree;
-        resolve(octree);
-      });
-    });
+    return new Promise((resolve, reject) => {
+      let extension = url.split('.').pop().toLowerCase()
+      let loaderFactory = new LoaderFactory(this.manager)
+      let loader = loaderFactory.getLoader(extension)
+      loader.setLOD(this.LOD.maxPoints, this.LOD.maxDepth)
+
+      loader.load(url,
+        octree => resolve(scope.octree = octree),
+        xhr => onProgress && onProgress(xhr),
+        error => reject(error))
+    })
   }
 
   /**
