@@ -3,7 +3,7 @@
  */
 
 import autoBind from 'auto-bind';
-import { Color, BufferGeometry, MeshPhongMaterial, BoxGeometry, Vector3, Mesh, BufferGeometry, VertexColors } from 'three';
+import { Color, BufferGeometry, MeshPhongMaterial, BoxGeometry, Vector3, Mesh, VertexColors } from 'three';
 import { LoaderFactory } from "./loaders/LoaderFactory";
 import { levelOfDetail } from './mixins/levelOfDetail';
 
