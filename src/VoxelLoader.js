@@ -4,7 +4,7 @@
 
 import autoBind from 'auto-bind';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
-import { BoxGeometry, Vector3, Mesh, VertexColors, MeshPhongMaterial } from 'three';
+import { BoxGeometry, Vector3, Mesh, VertexColors, MeshPhongMaterial, BufferAttribute } from 'three';
 import { LoaderFactory } from "./loaders/LoaderFactory";
 import { levelOfDetail } from './mixins/levelOfDetail';
 
@@ -124,7 +124,7 @@ export class VoxelLoader {
         const rgb = data.color;
         if (rgb) {
           const count = voxelGeometry.attributes.position.count
-          voxelGeometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(count * 3), 3))
+          voxelGeometry.setAttribute("color", new BufferAttribute(new Float32Array(count * 3), 3))
           for (let i = 0; i != count; i++) {
             voxelGeometry.attributes.color.setXYZ(i, rgb.r / 255, rgb.g / 255, rgb.b / 255)
           }
